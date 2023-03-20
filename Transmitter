@@ -1,0 +1,48 @@
+#include <RF24_config.h>
+#include "SPI.h"
+#include "RF24.h"
+#include "nRF24L01.h"
+
+#define CE_PIN 7
+#define CSN_PIN 8
+
+#define INTERVAL_MS_TRANSMISSION 250
+
+RF24 radio(CE_PIN, CSN_PIN);
+const byte address[6] = "00001";
+
+//zmienna na położenie potencjometru
+int JoystickX;
+
+//struktura na wysyłane dane
+struct payload {
+  int PWM;
+};
+
+//  "Obiekt" struktury payload
+payload payload;
+
+void setup()
+{
+
+//zdefiniowanie właściwości transmisji
+
+  Serial.begin(115200);
+
+  radio.begin();
+  radio.setAutoAck(false);
+  radio.setDataRate(RF24_2MBPS);
+  radio.setPALevel(RF24_PA_LOW); 
+  radio.setPayloadSize(sizeof(payload));
+  radio.openWritingPipe(address);
+  radio.stopListening();
+}
+
+//odczyt danych z wejścia analogowego
+//przetworzenie na sygnał PWM
+void loop()
+{
+  JoystickX = analogRead(A0);
+  payload.PWM = map(JoystickX, 0, 1023, 1000, 2000);
+  delay(INTERVAL_MS_TRANSMISSION);
+}
